@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#121212;color:white;text-align:center;">
+
+<h2>📁 Folder: {{folder}}</h2>
+
+<form action="/upload/{{folder}}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button>Upload File</button>
+</form>
+
+<h3>Files</h3>
+
+{% for file in files %}
+    <p>
+        <a href="/download/{{folder}}/{{file}}" style="color:lightgreen;">
+            📄 {{file}}
+        </a>
+    </p>
+{% endfor %}
+
+<br>
+<a href="/">⬅ Back</a>
+
+</body>
+</html>
