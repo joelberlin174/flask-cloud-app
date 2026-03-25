@@ -1,34 +1,57 @@
-<!DOCTYPE html>
-<html>
-<body>
-
-<h2>Universal Calculator</h2>
-
-<input type="text" id="input" placeholder="Enter value">
-<button onclick="sendData()">Submit</button>
-
-<p id="output"></p>
-
 <script>
-function sendData() {
-    let val = document.getElementById("input").value;
+let display = document.getElementById("display");
 
-    fetch('/update', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({value: val})
-    });
+// Button click
+function press(val) {
+    display.value += val;
 }
 
-// get latest value every 1 second
-setInterval(() => {
-    fetch('/get')
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("output").innerHTML = data.value;
-    });
-}, 1000);
-</script>
+// Calculate
+function calculate() {
+    try {
+        display.value = eval(display.value);
+    } catch {
+        display.value = "Error";
+    }
+}
 
-</body>
-</html>
+// Clear
+function clearDisplay() {
+    display.value = "";
+}
+
+// 🔥 Keyboard support
+document.addEventListener("keydown", function(event) {
+    let key = event.key;
+
+    // Numbers
+    if (!isNaN(key)) {
+        display.value += key;
+    }
+
+    // Operators
+    if (key === "+" || key === "-" || key === "*" || key === "/") {
+        display.value += key;
+    }
+
+    // Decimal
+    if (key === ".") {
+        display.value += key;
+    }
+
+    // Enter = calculate
+    if (key === "Enter") {
+        calculate();
+    }
+
+    // Backspace = delete last
+    if (key === "Backspace") {
+        display.value = display.value.slice(0, -1);
+    }
+
+    // Escape = clear
+    if (key === "Escape") {
+        clearDisplay();
+    }
+});
+</script>
