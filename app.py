@@ -1,23 +1,10 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
-result = ""   # shared for all users
-
-@app.route('/')
+@app.route("/")
 def home():
-    return render_template('index.html')
-
-@app.route('/update', methods=['POST'])
-def update():
-    global result
-    data = request.json
-    result = data['value']
-    return jsonify({"status": "ok"})
-
-@app.route('/get')
-def get():
-    return jsonify({"value": result})
+    return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
