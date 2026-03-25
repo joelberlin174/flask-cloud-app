@@ -1,87 +1,144 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Universal Calculator</title>
-    <style>
-        body {
-            text-align: center;
-            margin-top: 50px;
-            font-family: Arial;
-        }
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #121212;
+    color: white;
+    font-family: Arial;
+}
 
-        #display {
-            width: 220px;
-            height: 40px;
-            font-size: 20px;
-            text-align: right;
-            margin-bottom: 10px;
-        }
+#container {
+    display: flex;
+    gap: 50px;
+}
 
-        button {
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
-            margin: 3px;
-        }
-    </style>
+#calculator {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+#display {
+    width: 220px;
+    height: 40px;
+    font-size: 20px;
+    text-align: right;
+    margin-bottom: 10px;
+    background: #000;
+    color: #0f0;
+    border: none;
+    padding: 5px;
+}
+
+button {
+    width: 50px;
+    height: 50px;
+    margin: 3px;
+    font-size: 18px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #555;
+}
+
+#history {
+    background: #1e1e1e;
+    padding: 15px;
+    border-radius: 10px;
+    width: 200px;
+    height: 300px;
+    overflow-y: auto;
+}
+
+#history h3 {
+    margin-top: 0;
+    text-align: center;
+}
+
+li {
+    margin-bottom: 5px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Calculator</h2>
+<div id="container">
 
-<input type="text" id="display" readonly>
+<div id="calculator">
+    <h2>Calculator</h2>
+    <input type="text" id="display" readonly><br>
 
-<br>
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button onclick="press('/')">/</button><br>
 
-<!-- Buttons -->
-<button onclick="press('7')">7</button>
-<button onclick="press('8')">8</button>
-<button onclick="press('9')">9</button>
-<button onclick="press('/')">/</button><br>
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button onclick="press('*')">*</button><br>
 
-<button onclick="press('4')">4</button>
-<button onclick="press('5')">5</button>
-<button onclick="press('6')">6</button>
-<button onclick="press('*')">*</button><br>
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button onclick="press('-')">-</button><br>
 
-<button onclick="press('1')">1</button>
-<button onclick="press('2')">2</button>
-<button onclick="press('3')">3</button>
-<button onclick="press('-')">-</button><br>
+    <button onclick="press('0')">0</button>
+    <button onclick="press('.')">.</button>
+    <button onclick="calculate()">=</button>
+    <button onclick="press('+')">+</button><br>
 
-<button onclick="press('0')">0</button>
-<button onclick="press('.')">.</button>
-<button onclick="calculate()">=</button>
-<button onclick="press('+')">+</button><br>
+    <button onclick="clearDisplay()">C</button>
+</div>
 
-<button onclick="clearDisplay()">C</button>
+<div id="history">
+    <h3>History</h3>
+    <ul id="historyList"></ul>
+</div>
+
+</div>
 
 <script>
 let display = document.getElementById("display");
 
-// Button input
 function press(val) {
     display.value += val;
 }
 
-// Calculate result
 function calculate() {
     try {
-        display.value = eval(display.value);
+        let result = eval(display.value);
+        let full = display.value + " = " + result;
+        display.value = result;
+
+        fetch('/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({calc: full})
+        });
+
     } catch {
         display.value = "Error";
     }
 }
 
-// Clear
 function clearDisplay() {
     display.value = "";
 }
 
-// Keyboard support
-document.addEventListener("keydown", function(event) {
-    let key = event.key;
+// keyboard support
+document.addEventListener("keydown", function(e) {
+    let key = e.key;
 
     if (!isNaN(key) || "+-*/.".includes(key)) {
         press(key);
@@ -91,6 +148,22 @@ document.addEventListener("keydown", function(event) {
         display.value = display.value.slice(0, -1);
     }
 });
+
+// update history
+setInterval(() => {
+    fetch('/history')
+    .then(res => res.json())
+    .then(data => {
+        let list = document.getElementById("historyList");
+        list.innerHTML = "";
+
+        data.slice().reverse().forEach(item => {
+            let li = document.createElement("li");
+            li.textContent = item;
+            list.appendChild(li);
+        });
+    });
+}, 1000);
 </script>
 
 </body>
