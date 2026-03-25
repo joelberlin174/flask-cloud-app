@@ -1,26 +1,49 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+import os
 
 app = Flask(__name__)
 
-history = []   # shared history for all users
+BASE_FOLDER = 'storage'
+app.config['BASE_FOLDER'] = BASE_FOLDER
+
+# create base folder
+if not os.path.exists(BASE_FOLDER):
+    os.makedirs(BASE_FOLDER)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    folders = os.listdir(BASE_FOLDER)
+    return render_template('index.html', folders=folders)
 
-@app.route('/add', methods=['POST'])
-def add():
-    global history
-    data = request.json
-    history.append(data['calc'])
+@app.route('/create_folder', methods=['POST'])
+def create_folder():
+    folder_name = request.form['folder']
+    path = os.path.join(BASE_FOLDER, folder_name)
 
-    # limit history to last 10
-    history = history[-10:]
-    return jsonify({"status": "ok"})
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-@app.route('/history')
-def get_history():
-    return jsonify(history)
+    return redirect(url_for('home'))
+
+@app.route('/folder/<name>')
+def open_folder(name):
+    path = os.path.join(BASE_FOLDER, name)
+    files = os.listdir(path)
+    return render_template('folder.html', folder=name, files=files)
+
+@app.route('/upload/<folder>', methods=['POST'])
+def upload(folder):
+    file = request.files['file']
+    path = os.path.join(BASE_FOLDER, folder)
+
+    if file:
+        file.save(os.path.join(path, file.filename))
+
+    return redirect(url_for('open_folder', name=folder))
+
+@app.route('/download/<folder>/<filename>')
+def download(folder, filename):
+    return send_from_directory(os.path.join(BASE_FOLDER, folder), filename)
 
 if __name__ == "__main__":
     app.run()
